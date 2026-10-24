@@ -16,16 +16,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $st->fetch();
 
     if ($user && password_verify($pass, $user['password'])) {
-        session_regenerate_id(true);
-        $_SESSION['user'] = [
-            'id'          => (int)$user['id'],
-            'email'       => $user['email'],
-            'role'        => $user['role'],
-            'adherent_id' => $user['adherent_id'] ? (int)$user['adherent_id'] : null,
-        ];
-        redirect(home_for($user['role']));
+        if ($user['statut'] === 'en_attente') {
+            $error = 'Votre compte est en attente de validation par le bibliothécaire.';
+        } elseif ($user['statut'] === 'refuse') {
+            $error = 'Votre demande d\'inscription a été refusée. Contactez la bibliothèque.';
+        } else {
+            session_regenerate_id(true);
+            $_SESSION['user'] = [
+                'id'          => (int)$user['id'],
+                'email'       => $user['email'],
+                'role'        => $user['role'],
+                'adherent_id' => $user['adherent_id'] ? (int)$user['adherent_id'] : null,
+            ];
+            redirect(home_for($user['role']));
+        }
+    } else {
+        $error = 'E-mail ou mot de passe incorrect.';
     }
-    $error = 'E-mail ou mot de passe incorrect.';
 }
 
 $title = 'Connexion'; $active = 'login';
@@ -44,6 +51,6 @@ require 'includes/header.php';
     </label>
     <button class="btn" type="submit" style="margin-top:16px;width:100%">Se connecter</button>
   </form>
-  <p class="muted small">Pas encore de compte ? Demandez-le au bibliothécaire.</p>
+  <p class="muted small">Pas encore de compte ? <a href="inscription.php">Créer un compte</a></p>
 </div>
 <?php require 'includes/footer.php'; ?>

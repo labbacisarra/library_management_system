@@ -3,13 +3,20 @@ require_once __DIR__ . '/auth.php';
 $u = current_user();
 
 if (!$u) {
-    $pages = ['home' => ['Accueil', 'index.php'], 'login' => ['Connexion', 'login.php']];
-} elseif ($u['role'] === 'admin') {
     $pages = [
-        'dashboard' => ['Tableau de bord', 'dashboard.php'],
-        'livres'    => ['Livres',          'livres.php'],
-        'adherents' => ['Adhérents',       'adherents.php'],
-        'emprunts'  => ['Emprunts',        'emprunts.php'],
+        'home'     => ['Accueil',         'index.php'],
+        'login'    => ['Connexion',       'login.php'],
+        'register' => ['Créer un compte', 'inscription.php'],
+    ];
+} elseif ($u['role'] === 'admin') {
+    // nombre de demandes d'inscription en attente (affiché dans le menu)
+    $nbAttente = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE statut = 'en_attente'")->fetchColumn();
+    $pages = [
+        'dashboard'    => ['Tableau de bord', 'dashboard.php'],
+        'livres'       => ['Livres',          'livres.php'],
+        'adherents'    => ['Adhérents',       'adherents.php'],
+        'inscriptions' => ['Inscriptions' . ($nbAttente ? " ($nbAttente)" : ''), 'inscriptions.php'],
+        'emprunts'     => ['Emprunts',        'emprunts.php'],
     ];
 } else {
     $pages = ['home' => ['Accueil', 'index.php'], 'espace' => ['Mon espace', 'mon_espace.php']];

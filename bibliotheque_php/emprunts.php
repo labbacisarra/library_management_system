@@ -43,7 +43,12 @@ $livresDispo = $pdo->query(
     'SELECT l.id, l.titre, l.quantite - (SELECT COUNT(*) FROM emprunts e WHERE e.livre_id = l.id AND e.date_retour_effective IS NULL) AS dispo
      FROM livres l HAVING dispo > 0 ORDER BY l.titre'
 )->fetchAll();
-$adherents = $pdo->query('SELECT id, nom, prenom FROM adherents ORDER BY nom, prenom')->fetchAll();
+// Seuls les adhérents dont le compte n'est pas en attente / refusé peuvent emprunter
+$adherents = $pdo->query(
+    "SELECT a.id, a.nom, a.prenom FROM adherents a
+     WHERE NOT EXISTS (SELECT 1 FROM users u WHERE u.adherent_id = a.id AND u.statut <> 'actif')
+     ORDER BY a.nom, a.prenom"
+)->fetchAll();
 
 $emprunts = $pdo->query(
     'SELECT e.*, l.titre, CONCAT(a.prenom, " ", a.nom) AS adherent
